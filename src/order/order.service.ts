@@ -15,7 +15,7 @@ export class OrderService {
     const newOrder = new Order();
     newOrder.email = createOrderDto.email;
     newOrder.productId = createOrderDto.productId;
-    newOrder.status = createOrderDto.status;
+    newOrder.status = 'draft';
 
     return this.ordersRepository.save(newOrder);
   }

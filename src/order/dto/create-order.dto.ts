@@ -5,6 +5,4 @@ export class CreateOrderDto {
   productId: number;
   @ApiProperty()
   email: string;
-  @ApiProperty()
-  status: string;
 }
