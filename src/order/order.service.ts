@@ -16,7 +16,6 @@ export class OrderService {
     newOrder.email = createOrderDto.email;
     newOrder.productId = createOrderDto.productId;
     newOrder.status = 'draft';
-
     return this.ordersRepository.save(newOrder);
   }
 
@@ -31,7 +30,6 @@ export class OrderService {
   async update(id: number, updateOrderDto: UpdateOrderDto) {
     const order = await this.findOne(id);
     const updateOrder = { ...order, ...updateOrderDto };
-
     return this.ordersRepository.save(updateOrder);
   }
 

@@ -11,8 +11,13 @@ import {
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { ClientProxy } from '@nestjs/microservices';
-import { console } from 'inspector';
+import {
+  ClientProxy,
+  Ctx,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 
 @Controller('order')
 export class OrderController {
@@ -24,7 +29,7 @@ export class OrderController {
   @Post()
   async create(@Body() createOrderDto: CreateOrderDto) {
     const newOrder = await this.orderService.create(createOrderDto);
-    console.log('Order sent to inventory for process');
+    console.log('Order sent to inventory for processing');
     this.inventoryService.emit('order_created', newOrder);
     return newOrder;
   }
@@ -47,5 +52,25 @@ export class OrderController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.orderService.remove(+id);
+  }
+
+  @MessagePattern('order_completed')
+  async handleOrderCompleted(@Payload() data: any, @Ctx() context: RmqContext) {
+    console.log('Complete order');
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    data.status = 'completed';
+    await this.orderService.update(data.id, data);
+    channel.ack(originalMsg);
+  }
+
+  @MessagePattern('order_canceled')
+  async handleOrderCanceled(@Payload() data: any, @Ctx() context: RmqContext) {
+    console.log('Cancel order');
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    data.status = 'canceled';
+    await this.orderService.update(data.id, data);
+    channel.ack(originalMsg);
   }
 }
